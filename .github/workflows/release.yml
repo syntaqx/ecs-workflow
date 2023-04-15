@@ -40,7 +40,7 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
     -
-      name: Create ECR repository if it doesn't exist
+      name: Assert ECR repository exists
       run: |
         aws ecr describe-repositories --repository-names ${{ github.event.repository.name }} || aws ecr create-repository --repository-name ${{ github.event.repository.name }}
     -
@@ -50,8 +50,8 @@ jobs:
         ECR_IMAGE="${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:${{ steps.vars.outputs.sha_short }}"
         docker pull ${{ needs.build.outputs.image }}
         docker tag ${{ needs.build.outputs.image }} $ECR_IMAGE
-        echo "image=$ECR_IMAGE" >> "$GITHUB_OUTPUT"
         docker push $ECR_IMAGE
+        echo "image=$ECR_IMAGE" >> "$GITHUB_OUTPUT"
     -
       name: Fill in the new image ID in the Amazon ECS task definition
       id: task-def
