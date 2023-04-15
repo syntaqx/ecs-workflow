@@ -6,7 +6,6 @@ on:
       - main
 
 env:
-  ECR_REPOSITORY: example-ecr-repository
   AWS_REGION: us-east-1
 
 jobs:
@@ -35,17 +34,13 @@ jobs:
     -
       name: Create ECR repository if it doesn't exist
       run: |
-        aws ecr describe-repositories --repository-names ${{ env.ECR_REPOSITORY }} || aws ecr create-repository --repository-name ${{ env.ECR_REPOSITORY }}
+        aws ecr describe-repositories --repository-names ${{ github.event.repository.name }} || aws ecr create-repository --repository-name ${{ github.event.repository.name }}
     -
       name: Tag and push Docker Image to ECR
-      env:
-        REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        REPOSITORY: ${{ env.ECR_REPOSITORY }}
-        IMAGE_TAG: ${{ github.sha }}
       run: |
         docker pull ${{ needs.build.outputs.image }}
-        docker tag ${{ needs.build.outputs.image }} $REGISTRY/$REPOSITORY
-        docker push $REGISTRY/$REPOSITORY
+        docker tag ${{ needs.build.outputs.image }} ${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}
+        docker push ${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}
     # -
     #   name: Deploy to ECS
     #   uses: aws-actions/amazon-ecs-deploy@v1
