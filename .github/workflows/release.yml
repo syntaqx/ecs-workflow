@@ -1,4 +1,4 @@
-name: Build and Deploy
+name: Continuous Deployment
 
 on:
   push:
@@ -43,8 +43,9 @@ jobs:
         REPOSITORY: ${{ env.ECR_REPOSITORY }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        docker tag ${{ needs.build.outputs.image }} ${{ steps.login-ecr.outputs.registry }}/$REPOSITORY
-        docker push ${{ steps.login-ecr.outputs.registry }}/$REPOSITORY
+        docker pull ${{ needs.build.outputs.image }}
+        docker tag ${{ needs.build.outputs.image }} $REGISTRY/$REPOSITORY
+        docker push $REGISTRY/$REPOSITORY
     # -
     #   name: Deploy to ECS
     #   uses: aws-actions/amazon-ecs-deploy@v1
