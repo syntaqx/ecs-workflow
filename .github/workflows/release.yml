@@ -41,11 +41,11 @@ jobs:
         docker pull ${{ needs.build.outputs.image }}
         docker tag ${{ needs.build.outputs.image }} ${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}
         docker push ${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}
-    # -
-    #   name: Deploy to ECS
-    #   uses: aws-actions/amazon-ecs-deploy@v1
-    #   with:
-    #     cluster: ECS_CLUSTER_NAME
-    #     service: SERVICE_NAME
-    #     image: ${{ steps.login-ecr.outputs.registry }}/$REPOSITORY
-    #     registry: ${{ steps.login-ecr.outputs.registry }}
+    -
+      name: Deploy to ECS
+      uses: aws-actions/amazon-ecs-deploy@v1
+      with:
+        cluster: ecs-workflow-example-cluster
+        service: ${{ github.event.repository.name }}
+        image: ${{ steps.login-ecr.outputs.registry }}/$REPOSITORY
+        registry: ${{ steps.login-ecr.outputs.registry }}
