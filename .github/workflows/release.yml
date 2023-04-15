@@ -50,11 +50,11 @@ jobs:
         task-definition: .aws/task-definition.json
         container-name: ${{ github.event.repository.name }}
         image: ${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}
-      -
-        name: Deploy Amazon ECS task definition
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: ${{ github.event.repository.name }}
-          cluster: ${{ env.ECS_CLUSTER }}
-          wait-for-service-stability: true
+    -
+      name: Deploy Amazon ECS task definition
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.task-def.outputs.task-definition }}
+        service: ${{ github.event.repository.name }}
+        cluster: ${{ env.ECS_CLUSTER }}
+        wait-for-service-stability: true
