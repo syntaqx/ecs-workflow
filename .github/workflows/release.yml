@@ -25,6 +25,10 @@ jobs:
       name: Checkout
       uses: actions/checkout@v3
     -
+      name: Set output vars
+      id: vars
+      run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+    -
       name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2 # More information on this action can be found below in the 'AWS Credentials' section
       with:
@@ -41,10 +45,12 @@ jobs:
         aws ecr describe-repositories --repository-names ${{ github.event.repository.name }} || aws ecr create-repository --repository-name ${{ github.event.repository.name }}
     -
       name: Tag and push Docker Image to ECR
+      id: ecr
       run: |
         docker pull ${{ needs.build.outputs.image }}
-        docker tag ${{ needs.build.outputs.image }} ${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}
-        docker push ${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}
+        docker tag ${{ needs.build.outputs.image }} ${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:${{ steps.vars.outputs.version }}
+        docker push ${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:${{ steps.vars.outputs.version }}
+        echo "image=${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:${{ steps.vars.outputs.version }}" >> $GITHUB_OUTPUT
     -
       name: Fill in the new image ID in the Amazon ECS task definition
       id: task-def
@@ -52,7 +58,7 @@ jobs:
       with:
         task-definition: .aws/task-definition.json
         container-name: app
-        image: ${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}
+        image: ${{ steps.ecr.outputs.image }}
     -
       name: Deploy Amazon ECS task definition
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
